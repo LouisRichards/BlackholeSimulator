@@ -49,7 +49,7 @@ public:
      * 2. Initialize the renderer
      * 3. Mark application as ready to run
      */
-    bool initialize();
+    virtual bool initialize();
     
     /**
      * @brief Runs the main application loop
@@ -61,7 +61,7 @@ public:
      * 
      * The application must be initialized before calling this method.
      */
-    void run();
+    virtual void run();
     
     /**
      * @brief Cleans up application resources
@@ -71,7 +71,7 @@ public:
      */
     void cleanup();
 
-private:
+protected:
     std::unique_ptr<IWindow> window;     ///< Window management implementation
     std::unique_ptr<IRenderer> renderer; ///< Rendering implementation
     bool isInitialized;                  ///< Flag tracking initialization state

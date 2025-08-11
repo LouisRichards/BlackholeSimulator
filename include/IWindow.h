@@ -67,4 +67,13 @@ public:
      * and should be called every frame.
      */
     virtual void pollEvents() = 0;
+    
+    /**
+     * @brief Gets the native window handle
+     * @return Pointer to the native window object (implementation-specific)
+     * 
+     * This method provides access to the underlying window system's window
+     * handle for cases where direct access is needed (e.g., input handling).
+     */
+    virtual void* getNativeWindow() const = 0;
 };

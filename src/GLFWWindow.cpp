@@ -37,10 +37,10 @@ bool GLFWWindow::initializeGLFW() {
         return false;
     }
 
-    // Set OpenGL version and profile
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    // Use default OpenGL context (should support immediate mode)
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
+    // Don't specify profile - use default
 
     return true;
 }
@@ -88,4 +88,8 @@ void GLFWWindow::swapBuffers() {
 
 void GLFWWindow::pollEvents() {
     glfwPollEvents();
+}
+
+void* GLFWWindow::getNativeWindow() const {
+    return window;
 }

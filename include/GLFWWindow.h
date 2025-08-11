@@ -76,6 +76,12 @@ public:
      */
     void pollEvents() override;
 
+    /**
+     * @brief Gets the native GLFW window handle
+     * @return Pointer to the GLFWwindow object
+     */
+    void* getNativeWindow() const override;
+
 private:
     WindowProperties properties;  ///< Window configuration properties
     GLFWwindow* window;          ///< Pointer to the GLFW window object
