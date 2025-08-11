@@ -51,6 +51,31 @@ public:
     void setPosition(const Vec2& newPosition) { position = newPosition; }
 
     /**
+     * @brief Gets the current velocity of the body
+     * @return Velocity vector
+     */
+    const Vec2& getVelocity() const { return velocity; }
+
+    /**
+     * @brief Sets the velocity of the body
+     * @param newVelocity New velocity vector
+     */
+    void setVelocity(const Vec2& newVelocity) { velocity = newVelocity; }
+
+    /**
+     * @brief Applies a force to the body for one timestep
+     * @param force Force vector to apply
+     * @param deltaTime Time step duration
+     */
+    void applyForce(const Vec2& force, float deltaTime);
+
+    /**
+     * @brief Updates position based on current velocity
+     * @param deltaTime Time step duration
+     */
+    void updatePosition(float deltaTime);
+
+    /**
      * @brief Calculates gravitational force at a given point
      * @param point Position to calculate force at
      * @param gravitationalConstant G constant for force calculation
@@ -58,8 +83,17 @@ public:
      */
     Vec2 calculateGravitationalForce(const Vec2& point, float gravitationalConstant = 100.0f) const;
 
+    /**
+     * @brief Calculates gravitational force between this body and another
+     * @param other The other gravitational body
+     * @param gravitationalConstant G constant for force calculation
+     * @return Force vector that should be applied to this body
+     */
+    Vec2 calculateForceFrom(const GravityBody& other, float gravitationalConstant = 100.0f) const;
+
 private:
     Vec2 position;   ///< Current position of the body
+    Vec2 velocity;   ///< Current velocity of the body
     float mass;      ///< Mass of the body
     float radius;    ///< Visual radius for rendering
 };

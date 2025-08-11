@@ -1,16 +1,18 @@
-# BlackholeSimulator
+# Solar System Simulator
 
-A sophisticated 3D spacetime visualization application built with modern C++ and OpenGL, demonstrating SOLID principles and clean architecture.
+A sophisticated 3D solar system visualization application built with modern C++ and OpenGL, demonstrating SOLID principles and realistic planetary physics.
 
-## 🌌 Features
+## Features
 
-- **3D Spacetime Curvature Visualization**: Interactive grid showing gravitational field strength with proper depth warping
+- **3D Solar System Visualization**: Interactive spacetime grid showing gravitational fields around our Sun and planets
+- **Realistic Planetary Physics**: All 8 planets with accurate relative masses, distances, and orbital velocities
+- **N-Body Gravitational Simulation**: Planets attract each other and orbit the Sun with proper physics
 - **Multiple Camera Modes**: Free-flight and game-style camera controls with smooth transitions
-- **Real-time Gravity Simulation**: Physics-based gravitational body interactions
+- **Real-time Orbital Mechanics**: Watch Mercury, Venus, Earth, Mars, Jupiter, Saturn, and a comet orbit in real-time
 - **Interactive UI**: Camera mode switching with readable line-based text rendering
 - **SOLID Architecture**: Clean, maintainable, and extensible codebase following all five SOLID principles
 
-## 🎮 Controls
+## Controls
 
 - **M**: Open camera mode menu
 - **Mouse**: Hold left button and drag to rotate camera
@@ -20,7 +22,7 @@ A sophisticated 3D spacetime visualization application built with modern C++ and
 - **Shift+W/S**: Zoom in/out (Free-flight mode only)
 - **ESC**: Exit application
 
-## 🏗️ Architecture
+## Architecture
 
 Built following SOLID principles with clear separation of concerns:
 
@@ -28,8 +30,9 @@ Built following SOLID principles with clear separation of concerns:
 
 - **Camera System**: Interface-based camera implementations (Free-flight, Game-style) with `CameraController`
 - **Gravity Renderer**: 3D spacetime visualization with aligned grid and body positioning
+- **Physics Engine**: N-body gravitational simulation with velocity, acceleration, and orbital mechanics
 - **UI Renderer**: 2D overlay system with interactive menus using line-based text rendering
-- **Physics Simulation**: Gravitational body management and force calculations
+- **Physics Simulation**: Gravitational body management, force calculations, and real-time updates
 
 ### SOLID Principles Implementation
 
@@ -39,7 +42,7 @@ Built following SOLID principles with clear separation of concerns:
 - **Interface Segregation**: Focused interfaces (`ICamera`, `IRenderer`, `IWindow`) for specific needs
 - **Dependency Inversion**: High-level modules depend on abstractions, not concrete implementations
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 BlackholeSimulator/
@@ -67,7 +70,7 @@ BlackholeSimulator/
 └── SOLID_REFACTORING.md       # Detailed architecture evolution
 ```
 
-## 🛠️ Building
+## Building
 
 ### Prerequisites
 
@@ -94,17 +97,26 @@ g++ -fdiagnostics-color=always -g \
     -o BlackholeSimulator.exe
 ```
 
-## 🎯 What You'll See
+## What You'll See
 
-- **3D Warped Grid**: Spacetime mesh showing gravitational fields with proper depth
-  - Blue areas: Low gravitational force
-  - Red areas: High gravitational force
-  - Grid warps downward around massive objects
-- **Yellow Spheres**: Gravitational bodies creating the field distortion
+- **3D Warped Spacetime**: Solar system grid showing gravitational fields with proper depth
+  - Blue areas: Low gravitational force (outer solar system)
+  - Red areas: High gravitational force (near the Sun)
+  - Grid warps dramatically around the massive Sun
+- **Our Solar System**: Moving celestial bodies with realistic characteristics
+  - **Sun**: Massive central star (stationary)
+  - **Mercury**: Fast inner planet with tight orbit
+  - **Venus**: Bright second planet  
+  - **Earth**: Our home planet at 1 AU
+  - **Mars**: The red planet with slower orbit
+  - **Jupiter**: Massive gas giant with strong gravitational influence
+  - **Saturn**: Ring planet (rings not simulated)
+  - **Comet**: Highly elliptical orbit
+- **Dynamic Orbital Motion**: Planets move at different speeds based on distance from Sun
 - **Interactive Camera**: Smooth movement and rotation with two distinct modes
-- **Fixed-Position Menu**: Dropdown for camera mode switching (no longer follows cursor)
+- **Fixed-Position Menu**: Dropdown for camera mode switching
 
-## 🔧 Technical Highlights
+## Technical Highlights
 
 ### Modern C++ Features
 - **RAII**: Automatic resource management
@@ -122,8 +134,9 @@ g++ -fdiagnostics-color=always -g \
 - **Grid Alignment**: Fixed coordinate mapping between gravity bodies and visualization grid
 - **UI Positioning**: Changed from cursor-following to fixed-position menu for usability
 - **Text Rendering**: Implemented line-based character system for readable menu text
+- **N-Body Physics**: Added realistic gravitational attraction with orbital mechanics and boundary handling
 
-## 🚀 Future Extensions
+## Future Extensions
 
 The SOLID architecture supports easy addition of:
 - **New Physics**: N-body simulations, relativistic effects, particle dynamics
@@ -132,13 +145,13 @@ The SOLID architecture supports easy addition of:
 - **Data Export**: Simulation recording, screenshot capture, data analysis tools
 - **New Camera Types**: Orbital camera, tracking camera, cinematic camera paths
 
-## 📚 Documentation
+## Documentation
 
 - **SOLID_REFACTORING.md**: Detailed information about architecture evolution and SOLID principles implementation
 - **Code Comments**: Comprehensive documentation throughout the codebase
 - **Git History**: Clean commit history showing development progression
 
-## 🎓 Learning Value
+## Learning Value
 
 This project demonstrates:
 - **Clean Architecture**: Real-world application of SOLID principles
@@ -146,16 +159,23 @@ This project demonstrates:
 - **Component Design**: Separation of rendering, physics, UI, and camera systems
 - **Interface Design**: How to create extensible, maintainable C++ applications
 
-## 📸 Screenshots
+## Screenshots
 
 The application displays:
-1. A 3D spacetime grid that warps around gravitational bodies
-2. Yellow spheres representing massive objects
-3. Color-coded gravitational field strength
+1. A 3D spacetime grid warped by our Sun's massive gravitational field
+2. Moving planets in realistic orbits around the Sun
+3. Color-coded gravitational field strength that updates as planets move
 4. Interactive camera controls with smooth transitions
 5. Fixed-position menu system for mode switching
 
-## 📄 License
+**Solar System Features:**
+- **Accurate Scale**: Relative masses and distances based on real solar system data
+- **Kepler's Laws**: Inner planets orbit faster than outer planets
+- **Gravitational Interactions**: Planets influence each other (especially Jupiter's effect)
+- **Elliptical Orbits**: Comet demonstrates highly eccentric trajectory
+- **Real-time Physics**: All motion calculated using Newton's law of universal gravitation
+
+## License
 
 Open source project available under the MIT License.
 

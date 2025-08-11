@@ -57,9 +57,12 @@ public:
         std::cout << "  - A/D: Move left/right\n";
         std::cout << "  - Q/E: Move up/down (Free-flight) or adjust eye height (Game-style)\n";
         std::cout << "  - Shift+W/S: Zoom in/out (Free-flight mode only)\n";
+        std::cout << "Simulation Controls:\n";
+        std::cout << "  - SPACE: Hold to accelerate time (5x speed)\n";
         std::cout << "Current Mode: Free-flight\n";
         
-        float deltaTime = 0.016f; // ~60 FPS
+        float baseTimeStep = 0.016f; // ~60 FPS base time step
+        float timeMultiplier = 1.0f;
         
         // Variables for mouse tracking
         double lastMouseX = 0.0, lastMouseY = 0.0;
@@ -72,6 +75,15 @@ public:
             if (glfwGetKey(glfwWindow, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
                 glfwSetWindowShouldClose(glfwWindow, GLFW_TRUE);
             }
+            
+            // Check for time acceleration (SPACE key)
+            if (glfwGetKey(glfwWindow, GLFW_KEY_SPACE) == GLFW_PRESS) {
+                timeMultiplier = 5.0f; // 5x speed when holding SPACE
+            } else {
+                timeMultiplier = 1.0f; // Normal speed
+            }
+            
+            float deltaTime = baseTimeStep * timeMultiplier;
             
             // Handle input using separated input system
             handleInput(glfwWindow, lastMouseX, lastMouseY, firstMouse, deltaTime);
@@ -209,8 +221,8 @@ private:
 
 int main() {
     try {
-        // Create window properties for the gravity simulation
-        WindowProperties props(800, 600, "Blackhole Simulator - SOLID Architecture");
+        // Create window properties for the solar system simulation
+        WindowProperties props(800, 600, "Solar System Simulator - SOLID Architecture");
         
         // Create window instance
         auto window = std::make_unique<GLFWWindow>(props);
@@ -227,7 +239,7 @@ int main() {
             return -1;
         }
         
-        std::cout << "Starting gravity simulation with SOLID architecture...\n";
+        std::cout << "Starting solar system simulation with SOLID architecture...\n";
         std::cout << "Architecture improvements:\n";
         std::cout << "  - Single Responsibility: Each class has one clear purpose\n";
         std::cout << "  - Open/Closed: Easy to extend with new camera types\n";
@@ -236,12 +248,13 @@ int main() {
         std::cout << "\nThe grid shows gravitational field strength:\n";
         std::cout << "  - Blue areas: Low gravitational force\n";
         std::cout << "  - Red areas: High gravitational force\n";
-        std::cout << "  - Yellow circles: Gravitational bodies\n";
+        std::cout << "  - Yellow/Orange spheres: Planets and celestial bodies\n";
+        std::cout << "  Watch the planets orbit around the Sun!\n";
         
         app.run();
         
         // Cleanup is handled automatically by destructors
-        std::cout << "Gravity simulation finished successfully\n";
+        std::cout << "Solar system simulation finished successfully\n";
         return 0;
         
     } catch (const std::exception& e) {

@@ -58,6 +58,15 @@ struct Vec2 {
     }
 
     /**
+     * @brief Scalar division operator
+     * @param scalar Value to divide by
+     * @return Divided vector
+     */
+    Vec2 operator/(float scalar) const {
+        return Vec2(x / scalar, y / scalar);
+    }
+
+    /**
      * @brief Vector addition assignment operator
      * @param other Vector to add
      * @return Reference to this vector
@@ -65,6 +74,17 @@ struct Vec2 {
     Vec2& operator+=(const Vec2& other) {
         x += other.x;
         y += other.y;
+        return *this;
+    }
+
+    /**
+     * @brief Scalar multiplication assignment operator
+     * @param scalar Value to multiply by
+     * @return Reference to this vector
+     */
+    Vec2& operator*=(float scalar) {
+        x *= scalar;
+        y *= scalar;
         return *this;
     }
 
