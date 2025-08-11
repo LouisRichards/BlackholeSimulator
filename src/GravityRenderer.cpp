@@ -15,7 +15,14 @@ struct Vec3 {
 
 GravityRenderer::GravityRenderer(float viewportWidth, float viewportHeight)
     : viewportWidth(viewportWidth), viewportHeight(viewportHeight), 
-      maxForceVisualization(500.0f), isInitialized(false) {}
+      maxForceVisualization(500.0f), isInitialized(false),
+      cameraDistance(800.0f), cameraAngleX(30.0f), cameraAngleY(-15.0f),
+      cameraPosX(0.0f), cameraPosY(0.0f), cameraPosZ(0.0f),
+      cameraSpeed(10.0f), mouseSensitivity(0.5f),
+      currentCameraMode(CameraMode::FreeFlight),
+      gameYaw(0.0f), gamePitch(30.0f), gameEyeHeight(100.0f),
+      menuVisible(false), menuX(10.0f), menuY(10.0f), 
+      menuWidth(200.0f), menuHeight(100.0f) {}
 
 void GravityRenderer::initialize() {
     // Set up OpenGL state for 3D rendering
@@ -60,10 +67,19 @@ void GravityRenderer::render() {
     
     glLoadIdentity();
     
-    // Set up camera position to view the 3D grid
-    glTranslatef(0.0f, 0.0f, -800.0f);    // Move camera back
-    glRotatef(30.0f, 1.0f, 0.0f, 0.0f);   // Tilt down to see the surface
-    glRotatef(-15.0f, 0.0f, 1.0f, 0.0f);  // Slight side angle
+    // Apply camera transformations based on current mode
+    if (currentCameraMode == CameraMode::FreeFlight) {
+        // Free-flight camera (original implementation)
+        glTranslatef(0.0f, 0.0f, -cameraDistance);      // Distance from center
+        glRotatef(cameraAngleX, 1.0f, 0.0f, 0.0f);      // Pitch rotation
+        glRotatef(cameraAngleY, 0.0f, 1.0f, 0.0f);      // Yaw rotation
+        glTranslatef(cameraPosX, cameraPosY, cameraPosZ); // Position offset
+    } else {
+        // Game-style camera
+        glRotatef(-gamePitch, 1.0f, 0.0f, 0.0f);        // Pitch (look up/down)
+        glRotatef(-gameYaw, 0.0f, 1.0f, 0.0f);          // Yaw (look left/right)
+        glTranslatef(-cameraPosX, -(cameraPosY + gameEyeHeight), -cameraPosZ); // Position
+    }
     
     // Center the scene
     glTranslatef(-viewportWidth/2.0f, -viewportHeight/2.0f, 0.0f);
@@ -89,6 +105,11 @@ void GravityRenderer::render() {
     
     // Render gravitational bodies as 3D spheres
     render3DGravityBodies();
+    
+    // Render 2D menu overlay if visible
+    if (menuVisible) {
+        renderMenu();
+    }
 }
 
 void GravityRenderer::cleanup() {
@@ -234,4 +255,417 @@ void GravityRenderer::renderCircle(const Vec2& center, float radius, int segment
     }
     
     glEnd();
+}
+
+void GravityRenderer::updateCamera(float deltaX, float deltaY, bool isMousePressed) {
+    if (isMousePressed) {
+        if (currentCameraMode == CameraMode::FreeFlight) {
+            // Free-flight camera mouse control
+            cameraAngleY += deltaX * mouseSensitivity;
+            cameraAngleX += deltaY * mouseSensitivity;
+            
+            // Clamp vertical rotation to prevent flipping
+            if (cameraAngleX > 89.0f) cameraAngleX = 89.0f;
+            if (cameraAngleX < -89.0f) cameraAngleX = -89.0f;
+            
+            // Wrap horizontal rotation
+            if (cameraAngleY > 360.0f) cameraAngleY -= 360.0f;
+            if (cameraAngleY < -360.0f) cameraAngleY += 360.0f;
+        } else {
+            // Game-style camera mouse control
+            gameYaw += deltaX * mouseSensitivity;
+            gamePitch += deltaY * mouseSensitivity;
+            
+            // Clamp pitch to prevent over-rotation
+            if (gamePitch > 89.0f) gamePitch = 89.0f;
+            if (gamePitch < -89.0f) gamePitch = -89.0f;
+            
+            // Wrap yaw
+            if (gameYaw > 360.0f) gameYaw -= 360.0f;
+            if (gameYaw < -360.0f) gameYaw += 360.0f;
+        }
+    }
+}
+
+void GravityRenderer::moveCameraKeyboard(float forward, float right, float up) {
+    if (currentCameraMode == CameraMode::FreeFlight) {
+        // Free-flight movement (original implementation)
+        // Convert movement to camera space using trigonometry
+        float radY = cameraAngleY * M_PI / 180.0f;
+        float radX = cameraAngleX * M_PI / 180.0f;
+        
+        // Forward/backward movement (W/S keys)
+        cameraPosX += forward * sin(radY) * cos(radX) * cameraSpeed;
+        cameraPosY += forward * sin(radX) * cameraSpeed;
+        cameraPosZ += forward * cos(radY) * cos(radX) * cameraSpeed;
+        
+        // Left/right strafe movement (A/D keys)
+        cameraPosX += right * cos(radY) * cameraSpeed;
+        cameraPosZ -= right * sin(radY) * cameraSpeed;
+        
+        // Up/down movement (Q/E keys)
+        cameraPosY += up * cameraSpeed;
+        
+        // Mouse wheel zoom
+        if (forward != 0.0f) {
+            cameraDistance -= forward * cameraSpeed * 5.0f;
+            if (cameraDistance < 50.0f) cameraDistance = 50.0f;
+            if (cameraDistance > 2000.0f) cameraDistance = 2000.0f;
+        }
+    } else {
+        // Game-style movement (ground-relative)
+        float radYaw = gameYaw * M_PI / 180.0f;
+        
+        // Forward/backward relative to where we're looking (W/S keys)
+        cameraPosX += forward * sin(radYaw) * cameraSpeed;
+        cameraPosZ += forward * cos(radYaw) * cameraSpeed;
+        
+        // Left/right strafe movement (A/D keys)
+        cameraPosX += right * cos(radYaw) * cameraSpeed;
+        cameraPosZ -= right * sin(radYaw) * cameraSpeed;
+        
+        // Up/down movement (Q/E keys) - adjust eye height
+        gameEyeHeight += up * cameraSpeed;
+        if (gameEyeHeight < 10.0f) gameEyeHeight = 10.0f;   // Minimum eye height
+        if (gameEyeHeight > 500.0f) gameEyeHeight = 500.0f; // Maximum eye height
+    }
+}
+
+void GravityRenderer::setCameraMode(CameraMode mode) {
+    CameraMode previousMode = currentCameraMode;
+    currentCameraMode = mode;
+    
+    // Only synchronize if we're actually switching modes
+    if (previousMode != mode) {
+        if (mode == CameraMode::GameStyle) {
+            // Switching from FreeFlight to GameStyle
+            // Sync rotation angles
+            gameYaw = cameraAngleY;
+            gamePitch = cameraAngleX;
+            
+            // Set reasonable eye height while preserving X,Z position
+            // cameraPosX and cameraPosZ remain the same
+            // Convert cameraPosY to gameEyeHeight (eye height above ground)
+            gameEyeHeight = std::max(10.0f, std::min(500.0f, -cameraPosY + 100.0f));
+            
+        } else if (mode == CameraMode::FreeFlight) {
+            // Switching from GameStyle to FreeFlight  
+            // Sync rotation angles
+            cameraAngleY = gameYaw;
+            cameraAngleX = gamePitch;
+            
+            // Convert gameEyeHeight back to cameraPosY
+            // cameraPosX and cameraPosZ remain the same
+            cameraPosY = -(gameEyeHeight - 100.0f);
+        }
+    }
+}
+
+GravityRenderer::CameraMode GravityRenderer::getCameraMode() const {
+    return currentCameraMode;
+}
+
+void GravityRenderer::toggleMenu() {
+    menuVisible = !menuVisible;
+}
+
+bool GravityRenderer::isMenuVisible() const {
+    return menuVisible;
+}
+
+void GravityRenderer::handleMenu(double mouseX, double mouseY, bool isMouseClicked) {
+    if (!menuVisible || !isMouseClicked) return;
+    
+    // Convert mouse coordinates to menu space
+    float mx = static_cast<float>(mouseX);
+    float my = static_cast<float>(viewportHeight - mouseY); // Flip Y coordinate
+    
+    // Check if click is within menu bounds
+    if (mx >= menuX && mx <= menuX + menuWidth && my >= menuY && my <= menuY + menuHeight) {
+        // Calculate which menu item was clicked
+        float itemHeight = 30.0f;
+        float clickY = my - menuY;
+        
+        if (clickY >= 20.0f && clickY <= 20.0f + itemHeight) {
+            // Free-flight mode clicked
+            setCameraMode(CameraMode::FreeFlight);
+            menuVisible = false;
+            std::cout << "Selected Free-flight camera mode\n";
+        } else if (clickY >= 55.0f && clickY <= 55.0f + itemHeight) {
+            // Game-style mode clicked  
+            setCameraMode(CameraMode::GameStyle);
+            menuVisible = false;
+            std::cout << "Selected Game-style camera mode\n";
+        }
+    } else {
+        // Click outside menu, close it
+        menuVisible = false;
+    }
+}
+
+void GravityRenderer::renderMenu() {
+    // Save current OpenGL state
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
+    glLoadIdentity();
+    glOrtho(0, viewportWidth, 0, viewportHeight, -1, 1);
+    
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+    glLoadIdentity();
+    
+    glDisable(GL_DEPTH_TEST);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    
+    // Render menu background
+    glColor4f(0.2f, 0.2f, 0.2f, 0.9f);
+    renderRect(menuX, menuY, menuWidth, menuHeight);
+    
+    // Render menu border
+    glColor4f(0.8f, 0.8f, 0.8f, 1.0f);
+    glLineWidth(2.0f);
+    glBegin(GL_LINE_LOOP);
+    glVertex2f(menuX, menuY);
+    glVertex2f(menuX + menuWidth, menuY);
+    glVertex2f(menuX + menuWidth, menuY + menuHeight);
+    glVertex2f(menuX, menuY + menuHeight);
+    glEnd();
+    
+    // Render menu title
+    glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+    renderText(menuX + 10.0f, menuY + menuHeight - 15.0f, "Camera Mode");
+    
+    // Render menu options
+    // Free-flight option
+    if (currentCameraMode == CameraMode::FreeFlight) {
+        glColor4f(0.4f, 0.7f, 0.4f, 0.8f);
+        renderRect(menuX + 5.0f, menuY + 20.0f, menuWidth - 10.0f, 30.0f);
+    }
+    glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+    renderText(menuX + 10.0f, menuY + 35.0f, "Free-flight");
+    
+    // Game-style option  
+    if (currentCameraMode == CameraMode::GameStyle) {
+        glColor4f(0.4f, 0.7f, 0.4f, 0.8f);
+        renderRect(menuX + 5.0f, menuY + 55.0f, menuWidth - 10.0f, 30.0f);
+    }
+    glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+    renderText(menuX + 10.0f, menuY + 70.0f, "Game-style");
+    
+    // Restore OpenGL state
+    glEnable(GL_DEPTH_TEST);
+    glPopMatrix();
+    glMatrixMode(GL_PROJECTION);
+    glPopMatrix();
+    glMatrixMode(GL_MODELVIEW);
+}
+
+void GravityRenderer::renderRect(float x, float y, float width, float height) {
+    glBegin(GL_QUADS);
+    glVertex2f(x, y);
+    glVertex2f(x + width, y);
+    glVertex2f(x + width, y + height);
+    glVertex2f(x, y + height);
+    glEnd();
+}
+
+void GravityRenderer::renderText(float x, float y, const char* text) {
+    // Simple block-style text rendering using filled rectangles
+    // This creates clean, readable text that's easy to see
+    
+    const char* str = text;
+    float charWidth = 8.0f;
+    float charHeight = 12.0f;
+    float currentX = x;
+    float blockSize = 1.5f;
+    
+    glDisable(GL_DEPTH_TEST);
+    
+    while (*str) {
+        char c = *str;
+        
+        // Draw each character using filled rectangles in a 5x7 grid pattern
+        // This creates a simple but readable bitmap font
+        
+        bool pattern[8][5] = {false}; // 8 rows (includes descenders), 5 columns
+        
+        switch (c) {
+            case 'C':
+                // Pattern for C
+                pattern[0][1] = pattern[0][2] = pattern[0][3] = true;
+                pattern[1][0] = pattern[2][0] = pattern[3][0] = pattern[4][0] = pattern[5][0] = true;
+                pattern[6][1] = pattern[6][2] = pattern[6][3] = true;
+                break;
+                
+            case 'a':
+                // Pattern for a (lowercase)
+                pattern[2][1] = pattern[2][2] = pattern[2][3] = true;
+                pattern[3][0] = pattern[3][4] = true;
+                pattern[4][1] = pattern[4][2] = pattern[4][3] = pattern[4][4] = true;
+                pattern[5][0] = pattern[5][4] = true;
+                pattern[6][1] = pattern[6][2] = pattern[6][3] = pattern[6][4] = true;
+                break;
+                
+            case 'm':
+                // Pattern for m
+                pattern[2][0] = pattern[3][0] = pattern[4][0] = pattern[5][0] = pattern[6][0] = true;
+                pattern[2][1] = pattern[2][3] = true;
+                pattern[3][2] = pattern[4][2] = pattern[5][2] = pattern[6][2] = true;
+                pattern[3][4] = pattern[4][4] = pattern[5][4] = pattern[6][4] = true;
+                break;
+                
+            case 'e':
+                // Pattern for e
+                pattern[2][1] = pattern[2][2] = pattern[2][3] = true;
+                pattern[3][0] = pattern[3][4] = true;
+                pattern[4][0] = pattern[4][1] = pattern[4][2] = pattern[4][3] = true;
+                pattern[5][0] = true;
+                pattern[6][1] = pattern[6][2] = pattern[6][3] = true;
+                break;
+                
+            case 'r':
+                // Pattern for r
+                pattern[2][0] = pattern[3][0] = pattern[4][0] = pattern[5][0] = pattern[6][0] = true;
+                pattern[2][1] = pattern[2][2] = true;
+                break;
+                
+            case 'o':
+                // Pattern for o
+                pattern[2][1] = pattern[2][2] = pattern[2][3] = true;
+                pattern[3][0] = pattern[3][4] = true;
+                pattern[4][0] = pattern[4][4] = true;
+                pattern[5][0] = pattern[5][4] = true;
+                pattern[6][1] = pattern[6][2] = pattern[6][3] = true;
+                break;
+                
+            case 'M':
+                // Pattern for M
+                pattern[0][0] = pattern[1][0] = pattern[2][0] = pattern[3][0] = pattern[4][0] = pattern[5][0] = pattern[6][0] = true;
+                pattern[0][4] = pattern[1][4] = pattern[2][4] = pattern[3][4] = pattern[4][4] = pattern[5][4] = pattern[6][4] = true;
+                pattern[1][1] = pattern[2][2] = pattern[1][3] = true;
+                break;
+                
+            case 'd':
+                // Pattern for d
+                pattern[0][4] = pattern[1][4] = pattern[2][4] = pattern[3][4] = pattern[4][4] = pattern[5][4] = pattern[6][4] = true;
+                pattern[2][1] = pattern[2][2] = pattern[2][3] = true;
+                pattern[3][0] = pattern[4][0] = pattern[5][0] = true;
+                pattern[6][1] = pattern[6][2] = pattern[6][3] = true;
+                break;
+                
+            case 'F':
+                // Pattern for F
+                pattern[0][0] = pattern[1][0] = pattern[2][0] = pattern[3][0] = pattern[4][0] = pattern[5][0] = pattern[6][0] = true;
+                pattern[0][1] = pattern[0][2] = pattern[0][3] = true;
+                pattern[3][1] = pattern[3][2] = true;
+                break;
+                
+            case 'l':
+                // Pattern for l
+                pattern[0][2] = pattern[1][2] = pattern[2][2] = pattern[3][2] = pattern[4][2] = pattern[5][2] = pattern[6][2] = true;
+                break;
+                
+            case 'i':
+                // Pattern for i
+                pattern[0][2] = true; // dot
+                pattern[2][2] = pattern[3][2] = pattern[4][2] = pattern[5][2] = pattern[6][2] = true;
+                break;
+                
+            case 'g':
+                // Pattern for g
+                pattern[2][1] = pattern[2][2] = pattern[2][3] = true;
+                pattern[3][0] = pattern[4][0] = pattern[5][0] = true;
+                pattern[4][1] = pattern[4][2] = pattern[4][3] = pattern[4][4] = true;
+                pattern[5][4] = pattern[6][4] = true;
+                pattern[7][1] = pattern[7][2] = pattern[7][3] = true; // extends below baseline
+                break;
+                
+            case 'h':
+                // Pattern for h
+                pattern[0][0] = pattern[1][0] = pattern[2][0] = pattern[3][0] = pattern[4][0] = pattern[5][0] = pattern[6][0] = true;
+                pattern[3][1] = pattern[3][2] = pattern[3][3] = true;
+                pattern[4][4] = pattern[5][4] = pattern[6][4] = true;
+                break;
+                
+            case 't':
+                // Pattern for t
+                pattern[1][2] = pattern[2][2] = pattern[3][2] = pattern[4][2] = pattern[5][2] = pattern[6][2] = true;
+                pattern[3][0] = pattern[3][1] = pattern[3][3] = pattern[3][4] = true;
+                break;
+                
+            case 'G':
+                // Pattern for G
+                pattern[0][1] = pattern[0][2] = pattern[0][3] = true;
+                pattern[1][0] = pattern[2][0] = pattern[3][0] = pattern[4][0] = pattern[5][0] = true;
+                pattern[3][2] = pattern[3][3] = pattern[3][4] = true;
+                pattern[4][4] = pattern[5][4] = true;
+                pattern[6][1] = pattern[6][2] = pattern[6][3] = true;
+                break;
+                
+            case 's':
+                // Pattern for s
+                pattern[2][1] = pattern[2][2] = pattern[2][3] = true;
+                pattern[3][0] = true;
+                pattern[4][1] = pattern[4][2] = true;
+                pattern[5][3] = true;
+                pattern[6][0] = pattern[6][1] = pattern[6][2] = true;
+                break;
+                
+            case 'y':
+                // Pattern for y
+                pattern[2][0] = pattern[3][0] = true;
+                pattern[2][4] = pattern[3][4] = true;
+                pattern[4][1] = pattern[5][2] = pattern[6][2] = true;
+                pattern[7][1] = pattern[7][0] = true; // extends below baseline
+                break;
+                
+            case 'n':
+                // Pattern for n
+                pattern[2][0] = pattern[3][0] = pattern[4][0] = pattern[5][0] = pattern[6][0] = true;
+                pattern[2][1] = pattern[2][2] = pattern[2][3] = true;
+                pattern[3][4] = pattern[4][4] = pattern[5][4] = pattern[6][4] = true;
+                break;
+                
+            case '-':
+                // Pattern for hyphen
+                pattern[3][1] = pattern[3][2] = pattern[3][3] = true;
+                break;
+                
+            case ' ':
+                // Space - no pattern
+                break;
+                
+            default:
+                // Unknown character - draw a filled rectangle
+                for (int row = 1; row < 6; row++) {
+                    for (int col = 1; col < 4; col++) {
+                        pattern[row][col] = true;
+                    }
+                }
+                break;
+        }
+        
+        // Render the pattern using filled rectangles
+        glBegin(GL_QUADS);
+        for (int row = 0; row < 8; row++) {
+            for (int col = 0; col < 5; col++) {
+                if (pattern[row][col]) {
+                    float px = currentX + col * blockSize;
+                    float py = y + (7 - row) * blockSize; // Flip Y to render top-to-bottom
+                    
+                    glVertex2f(px, py);
+                    glVertex2f(px + blockSize, py);
+                    glVertex2f(px + blockSize, py + blockSize);
+                    glVertex2f(px, py + blockSize);
+                }
+            }
+        }
+        glEnd();
+        
+        currentX += charWidth;
+        str++;
+    }
+    
+    glEnable(GL_DEPTH_TEST);
 }

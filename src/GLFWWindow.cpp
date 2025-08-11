@@ -2,7 +2,8 @@
 #include <iostream>
 
 GLFWWindow::GLFWWindow(const WindowProperties& props)
-    : properties(props), window(nullptr), isInitialized(false) {}
+    : properties(props), window(nullptr), isInitialized(false),
+      lastMouseX(0.0), lastMouseY(0.0), firstMouse(true) {}
 
 GLFWWindow::~GLFWWindow() {
     cleanup();
@@ -92,4 +93,22 @@ void GLFWWindow::pollEvents() {
 
 void* GLFWWindow::getNativeWindow() const {
     return window;
+}
+
+bool GLFWWindow::isKeyPressed(int key) const {
+    if (!window) return false;
+    return glfwGetKey(window, key) == GLFW_PRESS;
+}
+
+void GLFWWindow::getMousePosition(double& x, double& y) const {
+    if (!window) {
+        x = y = 0.0;
+        return;
+    }
+    glfwGetCursorPos(window, &x, &y);
+}
+
+bool GLFWWindow::isMouseButtonPressed(int button) const {
+    if (!window) return false;
+    return glfwGetMouseButton(window, button) == GLFW_PRESS;
 }

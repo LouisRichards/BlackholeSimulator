@@ -37,15 +37,31 @@ public:
         }
 
         std::cout << "Starting main loop (Press ESC to exit)\n";
+        std::cout << "Camera Controls:\n";
+        std::cout << "  - M: Open camera mode menu\n";
+        std::cout << "  - Mouse: Hold left button and drag to rotate camera\n";
+        std::cout << "  - W/S: Move forward/backward\n";
+        std::cout << "  - A/D: Move left/right\n";
+        std::cout << "  - Q/E: Move up/down (Free-flight) or adjust eye height (Game-style)\n";
+        std::cout << "  - Shift+W/S: Zoom in/out (Free-flight mode only)\n";
+        std::cout << "Current Mode: Free-flight\n";
         
         float deltaTime = 0.016f; // ~60 FPS
+        
+        // Variables for mouse tracking
+        double lastMouseX = 0.0, lastMouseY = 0.0;
+        bool firstMouse = true;
+        GLFWwindow* glfwWindow = static_cast<GLFWwindow*>(window->getNativeWindow());
         
         // Main application loop with simulation updates
         while (!window->shouldClose()) {
             // Check for ESC key to exit
-            if (glfwGetKey(static_cast<GLFWwindow*>(window->getNativeWindow()), GLFW_KEY_ESCAPE) == GLFW_PRESS) {
-                glfwSetWindowShouldClose(static_cast<GLFWwindow*>(window->getNativeWindow()), GLFW_TRUE);
+            if (glfwGetKey(glfwWindow, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
+                glfwSetWindowShouldClose(glfwWindow, GLFW_TRUE);
             }
+            
+            // Handle camera input
+            handleCameraInput(glfwWindow, lastMouseX, lastMouseY, firstMouse, deltaTime);
             
             // Update simulation
             gravitySimulation->update(deltaTime);
@@ -73,6 +89,78 @@ private:
             gravityRenderer, [](GravityRenderer*){} // Empty deleter since we don't own it
         );
         gravitySimulation->setupRenderer(gravityRendererShared);
+    }
+
+    void handleCameraInput(GLFWwindow* glfwWindow, double& lastMouseX, double& lastMouseY, bool& firstMouse, float deltaTime) {
+        // Check for menu toggle (M key)
+        static bool mPressed = false;
+        bool mCurrentlyPressed = glfwGetKey(glfwWindow, GLFW_KEY_M) == GLFW_PRESS;
+        
+        if (mCurrentlyPressed && !mPressed) {
+            gravityRenderer->toggleMenu();
+        }
+        mPressed = mCurrentlyPressed;
+        
+        // Handle mouse input
+        double mouseX, mouseY;
+        glfwGetCursorPos(glfwWindow, &mouseX, &mouseY);
+        
+        // Check for mouse clicks
+        static bool mousePressed = false;
+        bool mouseCurrentlyPressed = glfwGetMouseButton(glfwWindow, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS;
+        bool mouseClicked = mouseCurrentlyPressed && !mousePressed;
+        mousePressed = mouseCurrentlyPressed;
+        
+        // Handle menu interaction
+        gravityRenderer->handleMenu(mouseX, mouseY, mouseClicked);
+        
+        // Only handle camera movement if menu is not visible
+        if (!gravityRenderer->isMenuVisible()) {
+            if (firstMouse) {
+                lastMouseX = mouseX;
+                lastMouseY = mouseY;
+                firstMouse = false;
+            }
+            
+            double deltaX = mouseX - lastMouseX;
+            double deltaY = lastMouseY - mouseY; // Reversed since y-coordinates go from bottom to top
+            lastMouseX = mouseX;
+            lastMouseY = mouseY;
+            
+            bool isMouseHeld = glfwGetMouseButton(glfwWindow, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS;
+            gravityRenderer->updateCamera(static_cast<float>(deltaX), static_cast<float>(deltaY), isMouseHeld);
+            
+            // Keyboard camera movement
+            float forward = 0.0f, right = 0.0f, up = 0.0f;
+            
+            // WASD movement
+            if (glfwGetKey(glfwWindow, GLFW_KEY_W) == GLFW_PRESS) {
+                if (glfwGetKey(glfwWindow, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS && 
+                    gravityRenderer->getCameraMode() == GravityRenderer::CameraMode::FreeFlight) {
+                    // Zoom in when Shift+W is pressed (free-flight mode only)
+                    forward = 1.0f;
+                } else {
+                    forward = 1.0f;
+                }
+            }
+            if (glfwGetKey(glfwWindow, GLFW_KEY_S) == GLFW_PRESS) {
+                if (glfwGetKey(glfwWindow, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS && 
+                    gravityRenderer->getCameraMode() == GravityRenderer::CameraMode::FreeFlight) {
+                    // Zoom out when Shift+S is pressed (free-flight mode only)
+                    forward = -1.0f;
+                } else {
+                    forward = -1.0f;
+                }
+            }
+            if (glfwGetKey(glfwWindow, GLFW_KEY_A) == GLFW_PRESS) right = -1.0f;
+            if (glfwGetKey(glfwWindow, GLFW_KEY_D) == GLFW_PRESS) right = 1.0f;
+            
+            // QE for up/down movement
+            if (glfwGetKey(glfwWindow, GLFW_KEY_Q) == GLFW_PRESS) up = 1.0f;
+            if (glfwGetKey(glfwWindow, GLFW_KEY_E) == GLFW_PRESS) up = -1.0f;
+            
+            gravityRenderer->moveCameraKeyboard(forward, right, up);
+        }
     }
 };
 

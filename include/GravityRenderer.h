@@ -69,12 +69,85 @@ public:
         maxForceVisualization = maxForce; 
     }
 
+    /**
+     * @brief Updates camera controls based on input
+     * @param deltaX Mouse delta X movement
+     * @param deltaY Mouse delta Y movement
+     * @param isMousePressed Whether mouse button is pressed
+     */
+    void updateCamera(float deltaX, float deltaY, bool isMousePressed);
+
+    /**
+     * @brief Moves camera position with keyboard input
+     * @param forward Move forward/backward
+     * @param right Move left/right
+     * @param up Move up/down
+     */
+    void moveCameraKeyboard(float forward, float right, float up);
+
+    /**
+     * @brief Camera control modes for different user experiences
+     */
+    enum class CameraMode {
+        FreeFlight,     ///< Free 6DOF movement (current implementation)
+        GameStyle       ///< Video game style camera with ground-relative movement
+    };
+
+    /**
+     * @brief Switches between different camera control modes
+     * @param mode The camera mode to switch to
+     */
+    void setCameraMode(CameraMode mode);
+
+    /**
+     * @brief Gets the current camera control mode
+     * @return Current camera mode
+     */
+    CameraMode getCameraMode() const;
+
+    /**
+     * @brief Handles menu input and display
+     * @param mouseX Current mouse X position
+     * @param mouseY Current mouse Y position
+     * @param isMouseClicked Whether mouse was clicked this frame
+     */
+    void handleMenu(double mouseX, double mouseY, bool isMouseClicked);
+
+    /**
+     * @brief Toggles the camera mode menu visibility
+     */
+    void toggleMenu();
+
+    /**
+     * @brief Checks if the menu is currently visible
+     * @return True if menu is visible
+     */
+    bool isMenuVisible() const;
+
 private:
     float viewportWidth, viewportHeight;                         ///< Viewport dimensions
     std::shared_ptr<GravityGrid> gravityGrid;                   ///< Grid to visualize
     std::vector<std::shared_ptr<GravityBody>> gravityBodies;    ///< Bodies to render
     float maxForceVisualization;                                ///< Max force for color scaling
     bool isInitialized;                                         ///< Initialization state
+
+    // Camera control variables
+    float cameraDistance;                                       ///< Distance from camera to center
+    float cameraAngleX;                                         ///< Camera rotation around X axis
+    float cameraAngleY;                                         ///< Camera rotation around Y axis
+    float cameraPosX, cameraPosY, cameraPosZ;                   ///< Camera position offsets
+    float cameraSpeed;                                          ///< Camera movement speed
+    float mouseSensitivity;                                     ///< Mouse rotation sensitivity
+    CameraMode currentCameraMode;                               ///< Current camera control mode
+    
+    // Game-style camera variables
+    float gameYaw, gamePitch;                                   ///< Game-style camera angles
+    float gameEyeHeight;                                        ///< Eye height above ground for game camera
+    
+    // Menu system variables
+    bool menuVisible;                                           ///< Whether the camera mode menu is visible
+    float menuX, menuY;                                         ///< Menu position
+    float menuWidth, menuHeight;                                ///< Menu dimensions
 
     // Forward declaration for 3D vector
     struct Vec3 { float x, y, z; Vec3(float x=0, float y=0, float z=0) : x(x), y(y), z(z) {} };
@@ -123,4 +196,26 @@ private:
      * @param segments Number of segments for circle approximation
      */
     void renderCircle(const Vec2& center, float radius, int segments = 16);
+
+    /**
+     * @brief Renders the camera mode selection menu
+     */
+    void renderMenu();
+
+    /**
+     * @brief Renders text at specified screen coordinates
+     * @param x Screen X coordinate
+     * @param y Screen Y coordinate  
+     * @param text Text to render
+     */
+    void renderText(float x, float y, const char* text);
+
+    /**
+     * @brief Renders a filled rectangle
+     * @param x X coordinate
+     * @param y Y coordinate
+     * @param width Rectangle width
+     * @param height Rectangle height
+     */
+    void renderRect(float x, float y, float width, float height);
 };

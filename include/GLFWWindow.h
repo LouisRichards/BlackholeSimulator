@@ -82,10 +82,35 @@ public:
      */
     void* getNativeWindow() const override;
 
+    /**
+     * @brief Checks if a specific key is currently pressed
+     * @param key GLFW key code to check
+     * @return true if the key is pressed, false otherwise
+     */
+    bool isKeyPressed(int key) const;
+
+    /**
+     * @brief Gets the current mouse position
+     * @param x Reference to store X coordinate
+     * @param y Reference to store Y coordinate
+     */
+    void getMousePosition(double& x, double& y) const;
+
+    /**
+     * @brief Checks if a mouse button is currently pressed
+     * @param button GLFW mouse button code to check
+     * @return true if the button is pressed, false otherwise
+     */
+    bool isMouseButtonPressed(int button) const;
+
 private:
     WindowProperties properties;  ///< Window configuration properties
     GLFWwindow* window;          ///< Pointer to the GLFW window object
     bool isInitialized;          ///< Flag tracking initialization state
+
+    // Mouse tracking for camera controls
+    double lastMouseX, lastMouseY;  ///< Last mouse position for delta calculation
+    bool firstMouse;                ///< Flag to prevent camera jump on first mouse input
 
     /**
      * @brief Initializes the GLFW library and sets OpenGL hints
