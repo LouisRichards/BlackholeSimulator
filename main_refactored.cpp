@@ -103,7 +103,7 @@ private:
     
     // UI state
     bool menuVisible = false;
-    CameraController::CameraMode selectedCameraMode = CameraController::CameraMode::FreeFlight;
+    CameraMode selectedCameraMode = CameraMode::FreeFlight;
 
     void setupSimulationRenderer() {
         auto gravityRendererShared = std::shared_ptr<GravityRenderer>(
@@ -153,14 +153,14 @@ private:
         // Handle menu interaction using separated UI component
         if (menuVisible && mouseClicked) {
             if (uiRenderer->isMouseOverMenu(static_cast<int>(mouseX), static_cast<int>(mouseY))) {
-                CameraController::CameraMode selectedMode = uiRenderer->getSelectedCameraMode(static_cast<int>(mouseX), static_cast<int>(mouseY));
+                CameraMode selectedMode = uiRenderer->getSelectedCameraMode(static_cast<int>(mouseX), static_cast<int>(mouseY));
                 cameraController->switchMode(selectedMode);
                 selectedCameraMode = selectedMode;
                 menuVisible = false; // Close menu after selection
                 
                 // Update console output
                 std::cout << "Switched to " << 
-                    (selectedMode == CameraController::CameraMode::FreeFlight ? "Free-flight" : "Game-style") << 
+                    (selectedMode == CameraMode::FreeFlight ? "Free-flight" : "Game-style") << 
                     " camera mode\n";
             } else {
                 menuVisible = false; // Close menu if clicking outside

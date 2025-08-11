@@ -127,9 +127,8 @@ void GravityRenderer::render3DSpacetimeGrid() {
     glPolygonOffset(1.0f, 1.0f);
     
     // Get grid properties
-    auto gridDimensions = gravityGrid->getGridDimensions();
-    float gridSizeX = static_cast<float>(gridDimensions.first);
-    float gridSizeY = static_cast<float>(gridDimensions.second);
+    float gridSizeX = static_cast<float>(gravityGrid->getWidth());
+    float gridSizeY = static_cast<float>(gravityGrid->getHeight());
     float gridScale = 600.0f; // Scale factor for visualization
     
     // Calculate grid spacing
@@ -139,8 +138,8 @@ void GravityRenderer::render3DSpacetimeGrid() {
     // Render grid as a mesh of quads with height representing gravitational potential
     glBegin(GL_QUADS);
     
-    for (int x = 0; x < gridDimensions.first - 1; ++x) {
-        for (int y = 0; y < gridDimensions.second - 1; ++y) {
+    for (int x = 0; x < gravityGrid->getWidth() - 1; ++x) {
+        for (int y = 0; y < gravityGrid->getHeight() - 1; ++y) {
             // Calculate world positions
             float worldX1 = (x - gridSizeX/2) * spacingX;
             float worldY1 = (y - gridSizeY/2) * spacingY;
@@ -148,16 +147,22 @@ void GravityRenderer::render3DSpacetimeGrid() {
             float worldY2 = ((y+1) - gridSizeY/2) * spacingY;
             
             // Get gravitational field strengths at grid points
-            Vec2 force1 = gravityGrid->getForceAtGridPoint(x, y);
-            Vec2 force2 = gravityGrid->getForceAtGridPoint(x+1, y);
-            Vec2 force3 = gravityGrid->getForceAtGridPoint(x+1, y+1);
-            Vec2 force4 = gravityGrid->getForceAtGridPoint(x, y+1);
+            Vec2 force1 = gravityGrid->getForceAt(x, y);
+            Vec2 force2 = gravityGrid->getForceAt(x+1, y);
+            Vec2 force3 = gravityGrid->getForceAt(x+1, y+1);
+            Vec2 force4 = gravityGrid->getForceAt(x, y+1);
             
             // Calculate heights based on force magnitude (gravitational potential)
-            float height1 = std::min(sqrtf(force1.x * force1.x + force1.y * force1.y) * 0.5f, 200.0f);
-            float height2 = std::min(sqrtf(force2.x * force2.x + force2.y * force2.y) * 0.5f, 200.0f);
-            float height3 = std::min(sqrtf(force3.x * force3.x + force3.y * force3.y) * 0.5f, 200.0f);
-            float height4 = std::min(sqrtf(force4.x * force4.x + force4.y * force4.y) * 0.5f, 200.0f);
+            float height1 = sqrt(force1.x * force1.x + force1.y * force1.y) * 0.5f;
+            float height2 = sqrt(force2.x * force2.x + force2.y * force2.y) * 0.5f;
+            float height3 = sqrt(force3.x * force3.x + force3.y * force3.y) * 0.5f;
+            float height4 = sqrt(force4.x * force4.x + force4.y * force4.y) * 0.5f;
+            
+            // Clamp heights for visualization
+            height1 = std::min(height1, 200.0f);
+            height2 = std::min(height2, 200.0f);
+            height3 = std::min(height3, 200.0f);
+            height4 = std::min(height4, 200.0f);
             
             // Apply color based on gravitational field strength
             Vec2 avgForce = forceToColor((height1 + height2 + height3 + height4) / 4.0f);
@@ -178,17 +183,17 @@ void GravityRenderer::render3DSpacetimeGrid() {
     glBegin(GL_LINES);
     
     // Horizontal lines
-    for (int y = 0; y < gridDimensions.second; ++y) {
-        for (int x = 0; x < gridDimensions.first - 1; ++x) {
+    for (int y = 0; y < gravityGrid->getHeight(); ++y) {
+        for (int x = 0; x < gravityGrid->getWidth() - 1; ++x) {
             float worldX1 = (x - gridSizeX/2) * spacingX;
             float worldY = (y - gridSizeY/2) * spacingY;
             float worldX2 = ((x+1) - gridSizeX/2) * spacingX;
             
-            Vec2 force1 = gravityGrid->getForceAtGridPoint(x, y);
-            Vec2 force2 = gravityGrid->getForceAtGridPoint(x+1, y);
+            Vec2 force1 = gravityGrid->getForceAt(x, y);
+            Vec2 force2 = gravityGrid->getForceAt(x+1, y);
             
-            float height1 = std::min(sqrtf(force1.x * force1.x + force1.y * force1.y) * 0.5f, 200.0f);
-            float height2 = std::min(sqrtf(force2.x * force2.x + force2.y * force2.y) * 0.5f, 200.0f);
+            float height1 = std::min(sqrt(force1.x * force1.x + force1.y * force1.y) * 0.5f, 200.0f);
+            float height2 = std::min(sqrt(force2.x * force2.x + force2.y * force2.y) * 0.5f, 200.0f);
             
             glVertex3f(worldX1, -height1, worldY);
             glVertex3f(worldX2, -height2, worldY);
@@ -196,17 +201,17 @@ void GravityRenderer::render3DSpacetimeGrid() {
     }
     
     // Vertical lines
-    for (int x = 0; x < gridDimensions.first; ++x) {
-        for (int y = 0; y < gridDimensions.second - 1; ++y) {
+    for (int x = 0; x < gravityGrid->getWidth(); ++x) {
+        for (int y = 0; y < gravityGrid->getHeight() - 1; ++y) {
             float worldX = (x - gridSizeX/2) * spacingX;
             float worldY1 = (y - gridSizeY/2) * spacingY;
             float worldY2 = ((y+1) - gridSizeY/2) * spacingY;
             
-            Vec2 force1 = gravityGrid->getForceAtGridPoint(x, y);
-            Vec2 force2 = gravityGrid->getForceAtGridPoint(x, y+1);
+            Vec2 force1 = gravityGrid->getForceAt(x, y);
+            Vec2 force2 = gravityGrid->getForceAt(x, y+1);
             
-            float height1 = std::min(sqrtf(force1.x * force1.x + force1.y * force1.y) * 0.5f, 200.0f);
-            float height2 = std::min(sqrtf(force2.x * force2.x + force2.y * force2.y) * 0.5f, 200.0f);
+            float height1 = std::min(sqrt(force1.x * force1.x + force1.y * force1.y) * 0.5f, 200.0f);
+            float height2 = std::min(sqrt(force2.x * force2.x + force2.y * force2.y) * 0.5f, 200.0f);
             
             glVertex3f(worldX, -height1, worldY1);
             glVertex3f(worldX, -height2, worldY2);
@@ -218,18 +223,6 @@ void GravityRenderer::render3DSpacetimeGrid() {
 }
 
 void GravityRenderer::render3DGravityBodies() {
-    if (!gravityGrid) return;
-    
-    // Get grid properties for consistent coordinate mapping
-    auto gridDimensions = gravityGrid->getGridDimensions();
-    float gridSizeX = static_cast<float>(gridDimensions.first);
-    float gridSizeY = static_cast<float>(gridDimensions.second);
-    float gridScale = 600.0f; // Same scale as used in grid rendering
-    
-    // Calculate grid spacing (same as in render3DSpacetimeGrid)
-    float spacingX = gridScale / gridSizeX;
-    float spacingY = gridScale / gridSizeY;
-    
     for (const auto& body : gravityBodies) {
         if (!body) continue;
         
@@ -237,13 +230,8 @@ void GravityRenderer::render3DGravityBodies() {
         Vec2 bodyPos = body->getPosition();
         float mass = body->getMass();
         
-        // Direct coordinate mapping to match grid system
-        // Body positions are in world coordinates (0-800 for X, 0-600 for Y typically)
-        // Convert directly to grid world coordinates
-        float worldX = (bodyPos.x / 800.0f - 0.5f) * gridScale; // Map 0-800 to -300 to +300
-        float worldZ = (bodyPos.y / 600.0f - 0.5f) * gridScale; // Map 0-600 to -300 to +300
-        
-        Vec3 worldPos(worldX, 50.0f, worldZ); // Elevate above the grid
+        // Convert to 3D world coordinates
+        Vec3 worldPos(bodyPos.x - 300.0f, 50.0f, bodyPos.y - 300.0f); // Center and elevate
         float radius = std::max(5.0f, std::min(50.0f, mass / 1000.0f)); // Scale radius by mass
         
         // Set color based on mass

@@ -19,6 +19,8 @@
                 "${workspaceFolder}/src/GravityGrid.cpp",
                 "${workspaceFolder}/src/GravityRenderer.cpp",
                 "${workspaceFolder}/src/GravitySimulation.cpp",
+                "${workspaceFolder}/src/Camera.cpp",
+                "${workspaceFolder}/src/UIRenderer.cpp",
                 "-L",
                 "D:\\Applications\\msys64\\ucrt64\\lib",
                 "-lglew32",
