@@ -1,55 +1,70 @@
 # BlackholeSimulator
 
-A modern C++ OpenGL application demonstrating SOLID principles and clean architecture for graphics programming.
+A sophisticated 3D spacetime visualization application built with modern C++ and OpenGL, demonstrating SOLID principles and clean architecture.
+
+## 🌌 Features
+
+- **3D Spacetime Curvature Visualization**: Interactive grid showing gravitational field strength with proper depth warping
+- **Multiple Camera Modes**: Free-flight and game-style camera controls with smooth transitions
+- **Real-time Gravity Simulation**: Physics-based gravitational body interactions
+- **Interactive UI**: Camera mode switching with readable line-based text rendering
+- **SOLID Architecture**: Clean, maintainable, and extensible codebase following all five SOLID principles
+
+## 🎮 Controls
+
+- **M**: Open camera mode menu
+- **Mouse**: Hold left button and drag to rotate camera
+- **W/S**: Move forward/backward
+- **A/D**: Move left/right  
+- **Q/E**: Move up/down (Free-flight) or adjust eye height (Game-style)
+- **Shift+W/S**: Zoom in/out (Free-flight mode only)
+- **ESC**: Exit application
 
 ## 🏗️ Architecture
 
-This project showcases a well-structured OpenGL application that has been refactored from a monolithic design into a modular architecture following all five SOLID principles:
+Built following SOLID principles with clear separation of concerns:
+
+### Core Components
+
+- **Camera System**: Interface-based camera implementations (Free-flight, Game-style) with `CameraController`
+- **Gravity Renderer**: 3D spacetime visualization with aligned grid and body positioning
+- **UI Renderer**: 2D overlay system with interactive menus using line-based text rendering
+- **Physics Simulation**: Gravitational body management and force calculations
 
 ### SOLID Principles Implementation
 
-- **Single Responsibility Principle (SRP)**: Each class has one reason to change
-  - `WindowProperties`: Window configuration data only
-  - `GLFWWindow`: GLFW window management only  
-  - `BasicRenderer`: OpenGL rendering operations only
-  - `Application`: Application coordination only
-
-- **Open/Closed Principle (OCP)**: Open for extension, closed for modification
-  - Abstract interfaces allow new implementations without changing existing code
-  - New renderers can implement `IRenderer`
-  - New window systems can implement `IWindow`
-
-- **Liskov Substitution Principle (LSP)**: Derived classes are substitutable for base classes
-  - `GLFWWindow` can replace `IWindow` anywhere
-  - `BasicRenderer` can replace `IRenderer` anywhere
-
-- **Interface Segregation Principle (ISP)**: Focused, specific interfaces
-  - `IWindow`: Only window management methods
-  - `IRenderer`: Only rendering methods
-
-- **Dependency Inversion Principle (DIP)**: Depend on abstractions, not concretions
-  - `Application` depends on `IWindow` and `IRenderer` interfaces
-  - Dependencies are injected via constructor
+- **Single Responsibility**: Each class handles one specific aspect (rendering, camera, UI, physics)
+- **Open/Closed**: Easy to extend with new camera types or renderers without modifying existing code
+- **Liskov Substitution**: Camera implementations are fully interchangeable through interfaces
+- **Interface Segregation**: Focused interfaces (`ICamera`, `IRenderer`, `IWindow`) for specific needs
+- **Dependency Inversion**: High-level modules depend on abstractions, not concrete implementations
 
 ## 📁 Project Structure
 
 ```
 BlackholeSimulator/
-├── main.cpp                    # Entry point with dependency injection
+├── main.cpp                    # Modern application entry point with dependency injection
 ├── include/                    # Header files
-│   ├── WindowProperties.h      # Window configuration structure
-│   ├── IWindow.h              # Abstract window interface
-│   ├── IRenderer.h            # Abstract renderer interface
-│   ├── GLFWWindow.h           # GLFW window implementation
-│   ├── BasicRenderer.h        # Basic OpenGL renderer
-│   └── Application.h          # Main application coordinator
-├── src/                       # Source files
-│   ├── GLFWWindow.cpp         # GLFW window implementation
-│   ├── BasicRenderer.cpp      # Basic renderer implementation
-│   └── Application.cpp        # Application logic
-└── .vscode/                   # VS Code configuration
-    ├── tasks.json             # Build configuration
-    └── c_cpp_properties.json  # IntelliSense configuration
+│   ├── Camera.h               # Camera system interfaces and implementations
+│   ├── GravityRenderer.h      # 3D spacetime visualization renderer
+│   ├── UIRenderer.h           # 2D UI overlay system with line-based text
+│   ├── GravityBody.h          # Physics body representation
+│   ├── GravityGrid.h          # Gravitational field grid calculations
+│   ├── GravitySimulation.h    # Physics simulation coordinator
+│   ├── Application.h          # Main application framework
+│   ├── GLFWWindow.h           # GLFW window management
+│   └── [Supporting files]     # Vec2.h, WindowProperties.h, interfaces
+├── src/                       # Implementation files
+│   ├── Camera.cpp             # Camera system with Free-flight and Game-style modes
+│   ├── GravityRenderer.cpp    # 3D rendering with coordinate-aligned visualization
+│   ├── UIRenderer.cpp         # UI rendering with line-based character system
+│   ├── GravityBody.cpp        # Physics body behavior and properties
+│   ├── GravityGrid.cpp        # Grid calculations and gravitational field strength
+│   ├── GravitySimulation.cpp  # Simulation management and updates
+│   └── [Supporting files]     # Application.cpp, GLFWWindow.cpp, BasicRenderer.cpp
+├── .gitignore                 # Comprehensive build and IDE file exclusions
+├── README.md                  # This documentation
+└── SOLID_REFACTORING.md       # Detailed architecture evolution
 ```
 
 ## 🛠️ Building
@@ -57,81 +72,93 @@ BlackholeSimulator/
 ### Prerequisites
 
 - **MSYS2** with UCRT64 environment
-- **GLEW** library: `pacman -S mingw-w64-ucrt-x86_64-glew`
-- **GLFW** library: `pacman -S mingw-w64-ucrt-x86_64-glfw`
-- **g++** compiler (included in MSYS2)
+- **GLEW**: `pacman -S mingw-w64-ucrt-x86_64-glew`
+- **GLFW**: `pacman -S mingw-w64-ucrt-x86_64-glfw`
+- **OpenGL**: Included with graphics drivers
 
-### Build Commands
+### Build Process
 
-#### Using VS Code
-1. Open the project in VS Code
-2. Press `Ctrl+Shift+P` and run "Tasks: Run Build Task"
-3. The executable will be created as `BlackholeSimulator.exe`
+#### Using VS Code (Recommended)
+1. Open project in VS Code
+2. Use the configured build task (`Ctrl+Shift+P` → "Tasks: Run Build Task")
+3. Run `.\BlackholeSimulator.exe`
 
-#### Using Command Line
+#### Command Line
 ```bash
 g++ -fdiagnostics-color=always -g \
     -I D:/Applications/msys64/ucrt64/include \
     -I . \
-    main.cpp src/Application.cpp src/GLFWWindow.cpp src/BasicRenderer.cpp \
+    main.cpp src/*.cpp \
     -L D:/Applications/msys64/ucrt64/lib \
     -lglew32 -lglfw3 -lopengl32 -lgdi32 \
     -o BlackholeSimulator.exe
 ```
 
-## 🚀 Running
+## 🎯 What You'll See
 
-After building, simply run:
-```bash
-./BlackholeSimulator.exe
-```
+- **3D Warped Grid**: Spacetime mesh showing gravitational fields with proper depth
+  - Blue areas: Low gravitational force
+  - Red areas: High gravitational force
+  - Grid warps downward around massive objects
+- **Yellow Spheres**: Gravitational bodies creating the field distortion
+- **Interactive Camera**: Smooth movement and rotation with two distinct modes
+- **Fixed-Position Menu**: Dropdown for camera mode switching (no longer follows cursor)
 
-You should see a window with a dark blue background, demonstrating the basic rendering pipeline.
+## 🔧 Technical Highlights
+
+### Modern C++ Features
+- **RAII**: Automatic resource management
+- **Smart Pointers**: Memory safety with shared_ptr/unique_ptr
+- **Interface Design**: Abstract base classes for extensibility
+- **Separation of Concerns**: Each component has a single, well-defined responsibility
+
+### Graphics Pipeline
+- **3D Perspective Rendering**: Proper depth testing and projection matrices
+- **2D Overlay System**: UI elements rendered on top with orthographic projection
+- **Coordinate System Consistency**: Grid and bodies perfectly aligned in 3D space
+- **Line-Based Text Rendering**: Custom character drawing using OpenGL primitives
+
+### Problem Solutions
+- **Grid Alignment**: Fixed coordinate mapping between gravity bodies and visualization grid
+- **UI Positioning**: Changed from cursor-following to fixed-position menu for usability
+- **Text Rendering**: Implemented line-based character system for readable menu text
+
+## 🚀 Future Extensions
+
+The SOLID architecture supports easy addition of:
+- **New Physics**: N-body simulations, relativistic effects, particle dynamics
+- **Enhanced Graphics**: Shader-based rendering, particle effects, lighting, shadows
+- **Interactive Elements**: Body placement, parameter adjustment, real-time editing
+- **Data Export**: Simulation recording, screenshot capture, data analysis tools
+- **New Camera Types**: Orbital camera, tracking camera, cinematic camera paths
 
 ## 📚 Documentation
 
-The codebase includes comprehensive Doxygen documentation:
+- **SOLID_REFACTORING.md**: Detailed information about architecture evolution and SOLID principles implementation
+- **Code Comments**: Comprehensive documentation throughout the codebase
+- **Git History**: Clean commit history showing development progression
 
-- **File-level documentation**: Purpose and overview of each file
-- **Class-level documentation**: Role in SOLID architecture
-- **Method documentation**: Parameters, return values, and behavior
-- **Architecture explanations**: How SOLID principles are applied
+## 🎓 Learning Value
 
-### Key Concepts Explained
+This project demonstrates:
+- **Clean Architecture**: Real-world application of SOLID principles
+- **3D Graphics Programming**: OpenGL immediate mode with proper 3D transformations
+- **Component Design**: Separation of rendering, physics, UI, and camera systems
+- **Interface Design**: How to create extensible, maintainable C++ applications
 
-- **Double Buffering**: `swapBuffers()` prevents visual artifacts by swapping front/back buffers
-- **Event-Driven Programming**: `pollEvents()` processes user input and window events
-- **Dependency Injection**: Application accepts interfaces, not concrete implementations
+## 📸 Screenshots
 
-## 🎯 Benefits of This Architecture
-
-1. **Maintainability**: Easy to understand and modify individual components
-2. **Testability**: Dependencies can be mocked for unit testing
-3. **Extensibility**: Add new renderers or window systems without breaking existing code
-4. **Reusability**: Components can be used in different contexts
-5. **Loose Coupling**: Changes to one component don't affect others
-
-## 🔄 Future Extensions
-
-This architecture makes it easy to add:
-
-- **New Renderers**: Vulkan renderer, Ray-tracing renderer, Software renderer
-- **New Window Systems**: SDL window, Win32 window, Wayland window
-- **Input Handling**: Keyboard and mouse input management
-- **Scene Management**: 3D scene graphs and object hierarchies
-- **Asset Loading**: Model and texture loading systems
-
-## 🤝 Contributing
-
-When contributing, please maintain the SOLID principles:
-
-1. Keep classes focused on a single responsibility
-2. Use interfaces for extensibility
-3. Inject dependencies rather than hard-coding them
-4. Write comprehensive documentation
-5. Follow the established naming conventions
+The application displays:
+1. A 3D spacetime grid that warps around gravitational bodies
+2. Yellow spheres representing massive objects
+3. Color-coded gravitational field strength
+4. Interactive camera controls with smooth transitions
+5. Fixed-position menu system for mode switching
 
 ## 📄 License
 
-This project is open source and available under the MIT License.
-A small blackhole simulator in cpp
+Open source project available under the MIT License.
+
+---
+
+**Note**: This is a complete, working 3D spacetime visualization with proper SOLID architecture. All major rendering and interaction issues have been resolved, including grid-body alignment, menu positioning, and text readability.

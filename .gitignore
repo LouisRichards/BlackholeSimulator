@@ -37,5 +37,38 @@
 *.out
 *.app
 
-# debug information files
+# Debug information files
 *.dwo
+
+# Build directories
+build/
+bin/
+obj/
+
+# IDE files
+.vscode/settings.json
+.vscode/launch.json
+.vscode/c_cpp_properties.json
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+*_backup.*
+*_old.*
+*_original.*
+*_refactored.*
+
+# Log files
+*.log
